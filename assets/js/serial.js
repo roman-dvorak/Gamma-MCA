@@ -250,7 +250,7 @@ export class SerialManager {
                 }
             }
         }
-        else if (SerialManager.orderType === 'hist') {
+        if (SerialManager.orderType === 'hist') {
             const stringArr = this.rawData.split('\n');
             stringArr.pop();
             if (!stringArr.length) {
@@ -284,6 +284,46 @@ export class SerialManager {
                         this.bufferPulseData[index] += diffHist[index];
                     }
                     this.baseHist = numHist;
+                }
+            }
+        }
+        if (SerialManager.orderType === 'labdos') {
+            const stringArr = this.rawData.split('\n');
+            stringArr.pop();
+            if (!stringArr.length) {
+                if (this.rawData.length > this.maxHistLength)
+                    this.rawData = '';
+                return;
+            }
+            else {
+                for (const row of stringArr) {
+                    this.rawData = this.rawData.replace(row + '\n', '');
+                    const trimString = row.trim();
+                    if (!trimString.length || trimString.length >= this.maxHistLength)
+                        continue;
+                    if (trimString.startsWith("$HIST")) {
+                        const cols = trimString.split(",");
+                        if (cols.length - 5 !== SerialManager.adcChannels) {
+                            console.log("Wrong count of hist: " + (cols.length - 5).toString() + " " + SerialManager.adcChannels.toString());
+                            continue;
+                        }
+                        if (!this.bufferPulseData.length)
+                            this.bufferPulseData = Array(SerialManager.adcChannels).fill(0);
+                        if (!this.baseHist.length) {
+                            this.baseHist = [1, 2];
+                            this.startTime = performance.now();
+                            return;
+                        }
+                        for (let index = 0; index < this.bufferPulseData.length; index++) {
+                            let parsed = parseInt(cols[index + 5 + 3]);
+                            parsed = isNaN(parsed) ? 0 : parsed;
+                            this.bufferPulseData[index] += parsed;
+                        }
+                        this.baseHist = [1, 2];
+                    }
+                    if (trimString.startsWith("$DOS")) {
+                        console.log(trimString);
+                    }
                 }
             }
         }

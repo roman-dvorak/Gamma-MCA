@@ -329,7 +329,9 @@ export class SerialManager {
         }
       }
 
-    } else if (SerialManager.orderType === 'hist') { // HISTOGRAM DATA
+    }
+
+    if (SerialManager.orderType === 'hist') { // HISTOGRAM DATA
 
       const stringArr = this.rawData.split('\n');
 
@@ -371,6 +373,58 @@ export class SerialManager {
           }
 
           this.baseHist = numHist; // Update baseline to the current array
+        }
+      }
+    }
+ 
+    if (SerialManager.orderType === 'labdos') { // LABDOS DATA PARSER
+
+      const stringArr = this.rawData.split('\n');
+
+      stringArr.pop(); // Delete last entry to avoid counting unfinished transmissions
+      if (!stringArr.length) {
+        if (this.rawData.length > this.maxHistLength) this.rawData = ''; // String too long without an EOL char, obvious error, delete.
+        return;
+      } else {
+        for (const row of stringArr) {
+          this.rawData = this.rawData.replace(row + '\n', '');
+          const trimString = row.trim(); // Delete whitespace and line breaks
+
+          if (!trimString.length || trimString.length >= this.maxHistLength) continue;
+
+          //Incoming Histogram data
+          if (trimString.startsWith("$HIST"))
+          {
+            const cols = trimString.split(",");
+            if (cols.length-5 !== SerialManager.adcChannels) {
+              console.log("Wrong count of hist: "+(cols.length-5).toString()+ " " + SerialManager.adcChannels.toString() );
+              continue; // Something is wrong with this histogram
+            }
+
+            if (!this.bufferPulseData.length) this.bufferPulseData = Array(SerialManager.adcChannels).fill(0);
+
+            //needed?
+            if (!this.baseHist.length) {
+              this.baseHist = [1,2];
+              this.startTime = performance.now(); // Reset because we only acquired the differential comparison hist
+              return;
+            }
+
+            for (let index=0; index<this.bufferPulseData.length; index++) {
+              let parsed = parseInt(cols[index+5+3]);
+              parsed=isNaN(parsed) ? 0 : parsed;
+              this.bufferPulseData[index] += parsed;
+            }
+
+            //needed?
+            this.baseHist = [1,2]; // Update baseline to the current array
+          }
+
+          //Other Messages
+          if (trimString.startsWith("$DOS"))
+          {
+            console.log(trimString);
+          }
         }
       }
     }

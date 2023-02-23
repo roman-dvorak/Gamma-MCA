@@ -13,7 +13,6 @@ export class SpectrumData {
         const dataArr = this[type];
         let sum = 0;
         if (start < 0 || start >= dataArr.length || end < 0 || end >= dataArr.length || start > end) {
-            console.error('Invalid sum range! Return default 0.');
             return sum;
         }
         for (let i = start; i <= end; i++) {
@@ -1548,6 +1547,7 @@ function resetMCA() {
 let serRecorder;
 document.getElementById('s1').onchange = event => selectSerialType(event.target);
 document.getElementById('s2').onchange = event => selectSerialType(event.target);
+document.getElementById('s3').onchange = event => selectSerialType(event.target);
 function selectSerialType(button) {
     SerialManager.orderType = button.value;
     saveJSON('serialDataMode', button.id);
@@ -1801,7 +1801,7 @@ function refreshRender(type, firstLoad = false) {
         const startDelay = performance.now();
         const newData = serRecorder.getData();
         const measTime = serRecorder.getTime() ?? 1000;
-        if (SerialManager.orderType === 'hist') {
+        if (SerialManager.orderType === 'hist' || SerialManager.orderType === 'labdos') {
             spectrumData.addHist(type, newData);
         }
         else if (SerialManager.orderType === 'chron') {
