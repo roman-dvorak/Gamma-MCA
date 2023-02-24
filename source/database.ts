@@ -34,6 +34,11 @@ export class database{
         };
     }
 
+    async insert_data(){
+
+
+    }
+
     async create_db() {
 
 

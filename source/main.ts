@@ -39,6 +39,7 @@ import { RawData, NPESv1, NPESv1Spectrum } from './raw-data.js';
 import { SerialManager, WebSerial, WebUSBSerial } from './serial.js';
 import { WebUSBSerialPort } from './external/webusbserial-min.js'
 import { Notification } from './notifications.js';
+import { database } from './database.js';
 
 export interface IsotopeList {
   [key: number]: string | undefined;
